@@ -9,7 +9,9 @@ def kmeans(features,K):
     
     # Set flags (Just to avoid line break in the code)
     flags = cv2.KMEANS_RANDOM_CENTERS
-    compactness, labels, centers = cv2.kmeans(features, K, None, criteria, 10, flags)
+    
+    # Run K Means on the data. Each feature should be a column. Th criterion and the flags are constants defined above
+    compactness, labels, centers = cv2.kmeans(features, K, criteria, 10, flags)
     return compactness, labels, centers
 
 class StatModel(object):
