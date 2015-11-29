@@ -24,7 +24,7 @@ listDir.append("Training/banana/")
 listDir.append("Training/cube/")
 listDir.append("Training/phone/")
 
-##Initializing the codebook and the number of directories that have been explored so far to collect the data
+##Initializing the size of the codebook and the number of directories that have been explored so far to collect the data
 codeBook = 0
 dirCount = 0
 
@@ -38,12 +38,17 @@ for direct in listDir:
 		inputImage=cv2.imread(fileList[count])
 		fileName = os.path.basename(fileList[count])
   
-     ## Apply median filetring on the data
+     ## Apply median filetring on the data to remove the noise from the carpet 
 		roiImageFiltered = inputImage # cv2.medianBlur(roiImage, 3)
-     ##
-		kp, roiKeyPointImage = detDes.featureDetectCorner(roiImageFiltered)
-		kp, des, roiKeyPointImage = detDes.featureDescriptorORB(roiImageFiltered, kp)
-               
+  
+     ## Corner detetcor to first get some key points
+		kpCorner, roiKeyPointImage = detDes.featureDetectCorner(roiImageFiltered)
+  
+     ## ORB detector to get the orb features and the descriptor
+		kpORB, des, roiKeyPointImage = detDes.featureDescriptorORB(roiImageFiltered, kpCorner)
+     ## Assigning the final key points to the variable kp for ease of use
+           kp = kpORB 
+    ## The if clause would be executed only if some key points are detcted 
 		if np.size(kp)>0:
 			cv2.imwrite(rootOutputName + listDir[dirCount] + fileName, roiKeyPointImage)
 			print ("Path: " +rootOutputName + listDir[dirCount])
