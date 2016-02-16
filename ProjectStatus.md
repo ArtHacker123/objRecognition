@@ -3,6 +3,7 @@
 ##Current Pipeline##
 
 **Training Procedure**
+
 1. Segmentation using *Mean shift* algorithm
 2. *Adaptive Thresholding* to convert to binary.
 3. Find *contours* on the images
@@ -14,6 +15,7 @@
 9. Use the histograms to train a *Kernel SVM*.
 
 **Testing Procedure**
+
 1. Segmentation using *Mean shift* algorithm
 2. *Adaptive Thresholding* to convert to binary.
 3. Find *contours* on the images
