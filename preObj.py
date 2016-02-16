@@ -2,6 +2,12 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from scipy import misc as msc
+import cv
+import sys
+#from skimage.segmentation import slic
+
+sys.path.append('../../../')
+#from phri_common_msgs.msg import ImgCoordinates
 
 
 
@@ -44,7 +50,7 @@ def cannyEdge(imageInput):
     This returns the edgeDetetction variable which contains the image with the edges marked out '''
     imageInput_unit8 = unit8Image(imageInput)
     try:
-        edgeDetection = cv2.Canny(imageInput_unit8, 50, 50)
+        edgeDetection = cv2.Canny(imageInput_unit8, 10, 10)
         return edgeDetection
     except TypeError: 
         print 'The input image in the function cannyEdge is not of data type unit8. Plese convert the image to unit8 using numpy.unit8.'
@@ -80,13 +86,17 @@ def contourFind(prepImage):
     else: 
         print 'The function contourFind is not working. You have most likely given invalid arguments.'																																									
     
+def contourFindFull(prepImage):
+    contours, hierarchy = cv2.findContours(prepImage, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)																																									
+    return contours, hierarchy
+
 
 
 def contourDraw(imageInput, prepImage):
     prepImage_unit8 = unit8Image(prepImage)
     imageInput_unit8 = unit8Image(imageInput)
     try:
-        contours, hierarchy = cv2.findContours(prepImage_unit8, cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(prepImage_unit8, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         imageInputCopy = imageInput_unit8.copy()
         cv2.drawContours(imageInputCopy, contours, -1, (255, 0, 0), 3)
         return imageInputCopy
@@ -96,7 +106,12 @@ def contourDraw(imageInput, prepImage):
         print 'The path to the file in contourDraw is not correctly specified. Please check that the file is in the correct location.'
     else: 
         print 'The function contourDraw is not working. You have most likely given invalid arguments.'
-        
+
+#def superPixelSeg(image):
+ #   numSegments = 20
+  #  segments = slic(image, n_segments = numSegments, sigma = 5)
+   # return segments
+
 
 ##Testing Phase
 
