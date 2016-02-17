@@ -72,22 +72,56 @@ Extract features on RoI's from both contours and continue the process. **Priorit
 
 ###Optimization strategies for Feature Extraction###
 
+*Idea1: Use HOG and ORB features together*
 
+*Idea 2: Learn the features using an Energy based model such as an autoencoder or a Restricted Boltzmann machine/DBN*
+...Sklearn has an implementation of a Bernouli RBM.
+...We implemented DBN in Theano. We want to use it with a sliding window approach.
+*Idea3: Use a pretrained convolutional network as a feature extractor*
+...Stages in implementation
+1. Get a strategy to get the segmented results
+
+
+
+
+###Optimization strategies for Preparing Training data###
+
+...We currently use simple k-means for clustering which does not perform very well on uniformly sampled data. Kmeans assumes that
+
+If we want to choose a better representation for our codebook instead of k-means, *Histogram intersection kernels* can be used.
+Check this paper for additional materials. **Efficient and Effective Visual Codebook Generation Using Additive Kernels, Journal of Machine Learning Research 12 (2011) 3097-3118, Jianxin Wu,Wei-Chian Tan,James M. Rehg**
+
+This is especially useful when we use Histogram based features, meaning that when we want to compare two histograms, the Eucledian distance is not useful anymore and HIK becomes an useful measure. If we use HOG features then using this kernel would be a good choice. The code for codebook Generation using HIK is available and is written in c++. Using python wrapper over c++ using boost.python we can use it code to get integrated with the existing pipeline code.
+
+The link to this *LibHIK* library is [here] (https://sites.google.com/site/wujx2001/home/libhik)
+
+
+###Optimization strategies for classifier###
+
+...We started training the SVM using the scikit-learn library instead of the OpenCV library. Benchmarks show that its one of the fastest implementations of an SVM out there. The grid search in SVM from scikit-learn uses multiple threads and hence can be processed faster.
 
 
 ##Problems Faced##
 
-...When we trained the new dataset containing 4 objects, the algorithm always predicted the background class.
+...When we trained the new dataset containing 4 objects, the algorithm always predicted the background class. This mostly is the problem of class imbalances. To measure this we are changing the metrics of accuracy that we have been using. We now use the *precision*, *recall* and the *roc_auc_score* to evaluate our classifier.
+...**Recollection exercise**:
+
+1. *Precision* is the *ratio tp / (tp + fp)* where tp is the number of true positives and fp the number of false positives. The precision is intuitively the ability of the classifier not to label as positive a sample that is negative.
+2. *Recall* is the ratio *tp / (tp + fn)* where tp is the number of true positives and fn the number of false negatives. The recall is intuitively the ability of the classifier to find all the positive samples.
+3. *roc_auc_score* is the area under the curve created by plotting the recall against the precision at various threshold settings
+4. *Confusion Matrix* Here the The diagonal elements of the matrix indicate the number of points for which the predicted label is equal to the true label and the off-diagonal elements are those that are incorrectly classified by the classifier.
+
 
 Like the good researchers that we are, we need to identify an experimental procedure to resolve this Problem.
 
 Lets first identify where the Problems could potentially lie!
 
-1.  *Problem:* Size of the codebook is too low and the noise added with the size of the background class.  
+1.  *Problem:* Size of the codebook is too low and the noise added with the size of the background class.
 2.  *Problem:* Simply the size of the Background class is too high and the SVM overfits to this class.
     ...This is the most obvious reason that we can think of right now.
     ...**To resolve this issue we have a couple of ideas in mind which we are going to implement now.**
     ...*Idea1: Use Bootstrapping as a sampling method*
+    ...Bootstrapping or any other random under sampling or over sampling method would not really work because of the Codebook compression step that we have in the Pipeline. When we do sampling and then perform a kmeans on the codebook of the feature points, similar feature points would get combined into the same feature point and thus removing the redundancy.
     ...*Idea2: Differential Error Class - Use a greater weight for misclassification from the foreground classes.*
     ...The Problem with this idea is that our existing scenario can not afford false negatives. If we increase the weight for misclassification from this class we might end up with some false positives. We still have to test this.
     **We thought of using cross validation to get the weights of the classes in the Kernel SVM but we decided against it as it is 9 additional parameters to be optimized and using non parametric methods would be the better way to go.**
@@ -99,6 +133,7 @@ Lets first identify where the Problems could potentially lie!
  4. *Problem* The SVM overfits to our data.
     ...We already had plans for changing the Classification from an SVM to a Random Gaussian Ensemble or a Random Forest.
     ...This we would only try if everything else with the SVM fails or if we need better comparison for our classifiers. We already have a neural network and SVM voting for the final result. The parameters have not been optimized. If we check that the parameters are optimized then we eliminate this as the problem completely.
+    **Also try a 1 vs all classifier**
 
 
 
@@ -108,9 +143,27 @@ In the order of Priority
 
 1. Use cross validation for setting up parameters.  **Priority 1**
   ..1. Preparing the data to be divided into training, test and validation data. **Before Noon**
+  *StratifiedShuffleSplit* is used to divide the data. The folds are made by preserving the % of samples for each class.
 2. Identify a solution for class imbalances.
   ..1. Read on Bootstrapping methods for sampling
   ..2. Read on Boosting and Ensemble learning methods.
-
+  ...Found a toolkit with different oversampling and undersampling methods implemented. The name of the toolkit is unbalanced_dataset. The link to the toolkit is [here] (https://github.com/fmfn/UnbalancedDataset). **I installed it on my computer but this later needs to be installed on all machines. Remember this**
 ##Plans for later.##
 3. Combining features.
+  ... scikit-learn has a module which is known as pipeline. The feature union function in the module can combine different features together into new features.
+  This can be used to combine RBM/ORB/HOG features. [Here] (http://scikit-learn.org/stable/auto_examples/feature_stacker.html#example-feature-stacker-py) is a link to the documentation on the same.  
+
+4. *Literature read today:*
+
+  ..1. http://sci2s.ugr.es/sites/default/files/ficherosPublicaciones/1422_2011-Galar-IEEE_TSMCc-Ensembles.pdf
+  ..2. http://www.cs.cmu.edu/~efros/exemplarsvm-iccv11.pdf
+  ..3. Profiling Python code
+  ..4. How to optimize for speed scikit-learn
+  ..5. Different metrics for model evaluation
+  ..6. Crossvalidation split strategies.
+  ..7. Kernel Approximation using Nystrom methods to improve Training/test speed of kernel SVM.
+  ..8. SMOTE: Synthetic Minority Over-sampling Technique
+  ..9. Editorial: Special Issue on Learning from Imbalanced Data Sets
+  ..10. Class imabalance learning methods for SVM's.
+  ..11. Sharing Visual features for multi class and multi view object detection.
+  ..12. Creating Efficient Codebooks for Visual Recognition https://jurie.users.greyc.fr/papers/05-jurie-triggs-iccv.pdf
