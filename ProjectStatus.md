@@ -86,7 +86,7 @@ Extract features on RoI's from both contours and continue the process. **Priorit
 
 ###Optimization strategies for Preparing Training data###
 
-...We currently use simple k-means for clustering which does not perform very well on uniformly sampled data. Kmeans assumes that
+...We currently use simple k-means for clustering which does not perform very well on uniformly sampled data. Kmeans assumes that 
 
 If we want to choose a better representation for our codebook instead of k-means, *Histogram intersection kernels* can be used.
 Check this paper for additional materials. **Efficient and Effective Visual Codebook Generation Using Additive Kernels, Journal of Machine Learning Research 12 (2011) 3097-3118, Jianxin Wu,Wei-Chian Tan,James M. Rehg**
