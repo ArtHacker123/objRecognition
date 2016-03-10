@@ -81,9 +81,6 @@ Extract features on RoI's from both contours and continue the process. **Priorit
 ...Stages in implementation
 1. Get a strategy to get the segmented results
 
-
-
-
 ###Optimization strategies for Preparing Training data###
 
 ...We currently use simple k-means for clustering which does not perform very well on uniformly sampled data. Kmeans assumes that
@@ -126,8 +123,11 @@ Lets first identify where the Problems could potentially lie!
     ...The Problem with this idea is that our existing scenario can not afford false negatives. If we increase the weight for misclassification from this class we might end up with some false positives. We still have to test this.
     **We thought of using cross validation to get the weights of the classes in the Kernel SVM but we decided against it as it is 9 additional parameters to be optimized and using non parametric methods would be the better way to go.**
     ...*Idea3: Ensemble learning methods*
+        We now work with the Random Forest approach.
     ...*Idea4: Use a z-SVM*
     ...*Idea5: Modify the kernel of the SVM*
+        This works.
+        The main problem that we had was that Eucledian distance between two histograms is not a meaningful measure
 3.  *Problem* The SVM parameters are not optimized for the problem
     ...**We just realized that the size of the Codebook could be a significant problem for us since the compression is creating a lot of noise. We decided to use cross validation to identify good parameters for the size of the codebook as well as the SVM parameters. We should have done this earlier and we did this for the first scenario. Lack of time made us hard code some parameters. This seems to have created a lot of problems. This is** *Priority 1* **for us now. This would however take a lot of time. We will train these on the server and that would reduce the amount of time taken.**
  4. *Problem* The SVM overfits to our data.
@@ -167,3 +167,46 @@ In the order of Priority
   ..10. Class imabalance learning methods for SVM's.
   ..11. Sharing Visual features for multi class and multi view object detection.
   ..12. Creating Efficient Codebooks for Visual Recognition https://jurie.users.greyc.fr/papers/05-jurie-triggs-iccv.pdf
+
+
+We have implemented the solutions that we thought were possible to solve the issue of class imbalances. We selectively subsampled the background class to make the size of the background class much smaller. Our current background class has about 1000 images. We also created more foreground data and now each of our foreground classes have about 700 images. The solution however did not work.
+
+We also tried the Differential Error Class approach by weighting the classifier to be more biased towards classes with less training samples.
+
+The fact that the algorithm does not predict anything but the background class tells us that this is not a problem of class imbalances anymore. The classifier can not distinguish between the objects and the background.
+
+The first reason could be that the features computed are not rich enough
+
+
+
+
+Pick all the files with a certain name from one folder and move them to another folder.
+
+read the files from listing directory
+get the basename of the files
+
+get rootoutputname add the basename to it
+ and copy the file name into destination
+
+
+ Shape structure.
+
+ For every training image, generate the list of features.
+
+ Spatial pyramid matching
+
+ Voronoi tesellation
+
+ Gaussian Mixture models to represent the concatenation of histograms created from centers of Voronoi tesellation.
+
+
+We are trying to reduce the computational cost as the time taken for processing is about 10 - 12 secs an image.
+
+Idea 1: Use a smaller codebook (smaller size 50,000 instead of 75000)
+implementing right now kmeans in progress. Then run the random forest training. Then test on a image for time results.
+Idea 2: Use ORB instead of SIFT (lesser number of dimensions)
+ORB features / descriptors are not rich enough to distinguish the objects either from each other or from clutter
+Training data is already created. Only have to run
+Idea 3: use parallel processing
+
+implementation of all three in progress.
